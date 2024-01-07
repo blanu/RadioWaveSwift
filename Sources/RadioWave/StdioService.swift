@@ -11,7 +11,7 @@ import Datable
 
 public struct StdioService<Request: MaybeDatable, Response: MaybeDatable, Handler: Logic> where Handler.Request == Request, Handler.Response == Response
 {
-    let stdio = Stdio<Response, Request>()
+    let stdio = Stdio<Response, Request>() // Yes, these are reversed here, because we are on the server side instead of the client side.
     let handler: Handler
 
     public init(handler: Handler) throws
