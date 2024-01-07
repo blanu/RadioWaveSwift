@@ -15,7 +15,12 @@ public struct Stdio<Request: MaybeDatable, Response: MaybeDatable>
     let stdin: FileHandle
     let stdout: FileHandle
 
-    public init(stdin: FileHandle, stdout: FileHandle) throws
+    public init()
+    {
+        self.init(stdin: FileHandle.standardInput, stdout: FileHandle.standardOutput)
+    }
+
+    public init(stdin: FileHandle, stdout: FileHandle)
     {
         self.stdin = stdin
         self.stdout = stdout
