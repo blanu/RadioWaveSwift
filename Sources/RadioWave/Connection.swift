@@ -67,11 +67,7 @@ public struct Connection<Request: MaybeDatable, Response: MaybeDatable>
             throw ConnectionError.conversionFailed
         }
 
-        var compressed = uncompressed
-        while compressed[0] == 0
-        {
-            compressed = compressed.dropFirst()
-        }
+        var compressed = self.compress(uncompressed)
 
         guard let prefix = UInt8(compressed.count).maybeNetworkData else
         {
@@ -95,6 +91,25 @@ public struct Connection<Request: MaybeDatable, Response: MaybeDatable>
     public func close()
     {
         self.network.close()
+    }
+
+    func compress(_ uncompressed: Data) -> Data
+    {
+        guard uncompressed.count > 0 else
+        {
+            return uncompressed
+        }
+
+        var prefix = 0
+        for index in 0..<uncompressed.count
+        {
+            if uncompressed[index] == 0
+            {
+                prefix += 1
+            }
+        }
+
+        return Data(uncompressed[prefix...])
     }
 }
 
