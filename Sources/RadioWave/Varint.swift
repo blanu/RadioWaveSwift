@@ -7,6 +7,25 @@
 
 import Foundation
 
+public func compress(_ uncompressed: Data) -> Data
+{
+    guard uncompressed.count > 0 else
+    {
+        return uncompressed
+    }
+
+    var prefix = 0
+    for index in 0..<uncompressed.count
+    {
+        if uncompressed[index] == 0
+        {
+            prefix += 1
+        }
+    }
+
+    return Data(uncompressed[prefix...])
+}
+
 public func unpackVarintData(buffer: Data) throws -> Data
 {
     guard buffer.count <= 8 else

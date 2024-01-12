@@ -82,25 +82,33 @@ public struct Stdio<Request: MaybeDatable, Response: MaybeDatable>
 
     public func write(_ request: Request) throws
     {
+        self.logger.trace("Stdio.write(\(request))")
+
         let payload = request.data
+
+        self.logger.trace("Stdio.write(\(request)) - payload: (\(payload.count)) \(payload.hex)")
 
         guard let uncompressed = UInt64(payload.count).maybeNetworkData else
         {
             throw ConnectionError.conversionFailed
         }
 
-        var compressed = uncompressed
-        while compressed[0] == 0
-        {
-            compressed = compressed.dropFirst()
-        }
+        self.logger.trace("Stdio.write(\(request)) - uncompressed: (\(uncompressed.count)) \(uncompressed.hex)")
+
+        let compressed = compress(uncompressed)
+
+        self.logger.trace("Stdio.write(\(request)) - compressed: (\(compressed.count)) \(compressed.hex)")
 
         guard let prefix = UInt8(compressed.count).maybeNetworkData else
         {
             throw ConnectionError.conversionFailed
         }
 
+        self.logger.trace("Stdio.write(\(request)) - prefix: (\(prefix.count)) \(prefix.hex)")
+
         let data = prefix + compressed + payload
+
+        self.logger.trace("Stdio.write(\(request)) - data: (\(data.count)) \(data.hex)")
 
         self.stdout.write(data)
     }
