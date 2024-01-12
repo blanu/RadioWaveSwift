@@ -6,17 +6,22 @@
 //
 
 import Foundation
+import Logging
 
 import Datable
 
 public struct StdioService<Request: MaybeDatable, Response: MaybeDatable, Handler: Logic> where Handler.Request == Request, Handler.Response == Response
 {
-    let stdio = Stdio<Response, Request>() // Yes, these are reversed here, because we are on the server side instead of the client side.
+    let stdio: Stdio<Response, Request> // Yes, these are reversed here, because we are on the server side instead of the client side.
     let handler: Handler
+    let logger: Logger
 
-    public init(handler: Handler) throws
+    public init(handler: Handler, logger: Logger) throws
     {
         self.handler = handler
+        self.logger = logger
+
+        self.stdio = Stdio<Response, Request>(logger: logger)
 
         try self.service()
     }

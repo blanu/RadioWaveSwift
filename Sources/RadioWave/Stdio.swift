@@ -6,24 +6,27 @@
 //
 
 import Foundation
+import Logging
 
 import Datable
 import Transmission
 
 public struct Stdio<Request: MaybeDatable, Response: MaybeDatable>
 {
+    let logger: Logger
     let stdin: FileHandle
     let stdout: FileHandle
 
-    public init()
+    public init(logger: Logger)
     {
-        self.init(stdin: FileHandle.standardInput, stdout: FileHandle.standardOutput)
+        self.init(stdin: FileHandle.standardInput, stdout: FileHandle.standardOutput, logger: logger)
     }
 
-    public init(stdin: FileHandle, stdout: FileHandle)
+    public init(stdin: FileHandle, stdout: FileHandle, logger: Logger)
     {
         self.stdin = stdin
         self.stdout = stdout
+        self.logger = logger
     }
 
     public func read() throws -> Response
