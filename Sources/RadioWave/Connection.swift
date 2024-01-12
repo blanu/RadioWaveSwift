@@ -79,6 +79,10 @@ public struct Connection<Request: MaybeDatable, Response: MaybeDatable>
             throw ConnectionError.conversionFailed
         }
 
+        logger.trace("prefix (\(prefix.count)) - \(prefix.hex)")
+        logger.trace("compressed (\(compressed.count)) - \(compressed.hex)")
+        logger.trace("payload (\(payload.count)) - \(payload.hex)")
+
         let data = prefix + compressed + payload
 
         logger.trace("writing (\(data.count)) - \(data.hex)")
