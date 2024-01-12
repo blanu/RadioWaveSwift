@@ -71,6 +71,7 @@ public struct Stdio<Request: MaybeDatable, Response: MaybeDatable>
 
         guard let response = Response(data: payload) else
         {
+            self.logger.error("Stdio.read() - throwing ConnectionError.conversionFailed")
             throw ConnectionError.conversionFailed
         }
 
