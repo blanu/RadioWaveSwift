@@ -6,16 +6,21 @@
 //
 
 import Foundation
+import Logging
 
 import Datable
 import Transmission
+import SwiftHexTools
 
 public struct Connection<Request: MaybeDatable, Response: MaybeDatable>
 {
     let network: Transmission.Connection
+    let logger: Logger
 
-    public init(host: String, port: Int) throws
+    public init(host: String, port: Int, logger: Logger) throws
     {
+        self.logger = logger
+
         guard let network = TCPConnection(host: host, port: port) else
         {
             throw ConnectionError.connectionFailed
@@ -67,7 +72,7 @@ public struct Connection<Request: MaybeDatable, Response: MaybeDatable>
             throw ConnectionError.conversionFailed
         }
 
-        var compressed = self.compress(uncompressed)
+        let compressed = self.compress(uncompressed)
 
         guard let prefix = UInt8(compressed.count).maybeNetworkData else
         {
@@ -75,6 +80,8 @@ public struct Connection<Request: MaybeDatable, Response: MaybeDatable>
         }
 
         let data = prefix + compressed + payload
+
+        logger.trace("writing (\(data.count)) - \(data.hex)")
 
         guard self.network.write(data: data) else
         {

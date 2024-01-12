@@ -18,6 +18,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/OperatorFoundation/Datable", branch: "main"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.5.2"),
+        .package(url: "https://github.com/OperatorFoundation/SwiftHexTools", branch: "main"),
         .package(url: "https://github.com/OperatorFoundation/Transmission", branch: "main"),
     ],
     targets: [
@@ -34,7 +35,10 @@ let package = Package(
         ),
         .testTarget(
             name: "RadioWaveTests",
-            dependencies: ["RadioWave"]),
+            dependencies: [
+                "RadioWave",
+                "SwiftHexTools",
+            ]),
     ],
     swiftLanguageVersions: [.v5]
 )
