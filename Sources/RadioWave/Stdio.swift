@@ -31,29 +31,43 @@ public struct Stdio<Request: MaybeDatable, Response: MaybeDatable>
 
     public func read() throws -> Response
     {
+        self.logger.trace("Stdio.read()")
+
         guard let prefix = try self.stdin.read(upToCount: 1) else
         {
             throw StdioError.readFailed
         }
 
+        self.logger.trace("Stdio.read() - prefix: \(prefix)")
+
         let varintCount = Int(prefix[0])
+
+        self.logger.trace("Stdio.read() - varintCount: \(varintCount)")
 
         guard let compressedBuffer = try self.stdin.read(upToCount: varintCount) else
         {
             throw StdioError.readFailed
         }
 
+        self.logger.trace("Stdio.read() - compressedBuffer: (\(compressedBuffer.count)) - \(compressedBuffer.hex)")
+
         let uncompressedBuffer = try unpackVarintData(buffer: compressedBuffer)
+
+        self.logger.trace("Stdio.read() - uncompressedBuffer: (\(uncompressedBuffer.count)) - \(uncompressedBuffer.hex)")
 
         guard let payloadCount = uncompressedBuffer.maybeNetworkUint64 else
         {
             throw ConnectionError.conversionFailed
         }
 
+        self.logger.trace("Stdio.read() - payloadCount: (\(payloadCount))")
+
         guard let payload = try self.stdin.read(upToCount: Int(payloadCount)) else
         {
             throw ConnectionError.readFailed
         }
+
+        self.logger.trace("Stdio.read() - payload: (\(payload.count)) - \(payload.hex)")
 
         guard let response = Response(data: payload) else
         {
