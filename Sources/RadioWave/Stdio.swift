@@ -74,6 +74,8 @@ public struct Stdio<Request: MaybeDatable, Response: MaybeDatable>
             throw ConnectionError.conversionFailed
         }
 
+        self.logger.trace("Stdio.read() - response: (\(response))")
+
         return response
     }
 
