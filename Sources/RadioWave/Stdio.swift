@@ -8,10 +8,10 @@
 import Foundation
 import Logging
 
-import Datable
+import Daydream
 import Transmission
 
-public struct Stdio<Request: MaybeDatable, Response: MaybeDatable>
+public struct Stdio<Request: Daydreamable, Response: Daydreamable>
 {
     let logger: Logger
     let stdin: FileHandle
@@ -69,11 +69,7 @@ public struct Stdio<Request: MaybeDatable, Response: MaybeDatable>
 
         self.logger.trace("Stdio.read() - payload: (\(payload.count)) - \(payload.hex)")
 
-        guard let response = Response(data: payload) else
-        {
-            self.logger.error("Stdio.read() - throwing ConnectionError.conversionFailed")
-            throw ConnectionError.conversionFailed
-        }
+        let response = try Response(daydream: payload)
 
         self.logger.trace("Stdio.read() - response: (\(response))")
 
@@ -84,7 +80,7 @@ public struct Stdio<Request: MaybeDatable, Response: MaybeDatable>
     {
         self.logger.trace("Stdio.write(\(request))")
 
-        let payload = request.data
+        let payload = request.daydream
 
         self.logger.trace("Stdio.write(\(request)) - payload: (\(payload.count)) \(payload.hex)")
 

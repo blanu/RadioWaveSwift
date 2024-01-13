@@ -16,7 +16,7 @@ let package = Package(
             targets: ["RadioWave"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/OperatorFoundation/Datable", branch: "main"),
+        .package(url: "https://github.com/blanu/Daydream", branch: "main"),
         .package(url: "https://github.com/apple/swift-log.git", from: "1.5.2"),
         .package(url: "https://github.com/OperatorFoundation/SwiftHexTools", branch: "main"),
         .package(url: "https://github.com/OperatorFoundation/Transmission", branch: "main"),
@@ -29,7 +29,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Logging", package: "swift-log"),
 
-                "Datable",
+                "Daydream",
                 "Transmission",
             ]
         ),

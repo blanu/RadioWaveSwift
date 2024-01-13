@@ -8,11 +8,11 @@
 import Foundation
 import Logging
 
-import Datable
+import Daydream
 import Transmission
 import SwiftHexTools
 
-public struct Connection<Request: MaybeDatable, Response: MaybeDatable>
+public struct Connection<Request: Daydreamable, Response: Daydreamable>
 {
     let network: Transmission.Connection
     let logger: Logger
@@ -55,17 +55,14 @@ public struct Connection<Request: MaybeDatable, Response: MaybeDatable>
             throw ConnectionError.readFailed
         }
 
-        guard let response = Response(data: payload) else
-        {
-            throw ConnectionError.conversionFailed
-        }
+        let response = try Response(daydream: payload)
 
         return response
     }
 
     public func write(_ request: Request) throws
     {
-        let payload = request.data
+        let payload = request.daydream
 
         guard let uncompressed = UInt64(payload.count).maybeNetworkData else
         {

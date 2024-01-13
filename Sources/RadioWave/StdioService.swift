@@ -8,9 +8,9 @@
 import Foundation
 import Logging
 
-import Datable
+import Daydream
 
-public struct StdioService<Request: MaybeDatable, Response: MaybeDatable, Handler: Logic> where Handler.Request == Request, Handler.Response == Response
+public struct StdioService<Request: Daydreamable, Response: Daydreamable, Handler: Logic> where Handler.Request == Request, Handler.Response == Response
 {
     let stdio: Stdio<Response, Request> // Yes, these are reversed here, because we are on the server side instead of the client side.
     let handler: Handler
