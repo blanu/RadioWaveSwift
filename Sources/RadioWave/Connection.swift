@@ -31,63 +31,12 @@ public struct Connection<Request: Daydreamable, Response: Daydreamable>
 
     public func read() throws -> Response
     {
-        guard let prefix = self.network.read(size: 1) else
-        {
-            throw ConnectionError.readFailed
-        }
-
-        let varintCount = Int(prefix[0])
-
-        guard let compressedBuffer = self.network.read(size: varintCount) else
-        {
-            throw ConnectionError.readFailed
-        }
-
-        let uncompressedBuffer = try unpackVarintData(buffer: compressedBuffer)
-
-        guard let payloadCount = uncompressedBuffer.maybeNetworkUint64 else
-        {
-            throw ConnectionError.conversionFailed
-        }
-
-        guard let payload = self.network.read(size: Int(payloadCount)) else
-        {
-            throw ConnectionError.readFailed
-        }
-
-        let response = try Response(daydream: payload)
-
-        return response
+        return try Response(daydream: self.network)
     }
 
     public func write(_ request: Request) throws
     {
-        let payload = request.daydream
-
-        guard let uncompressed = UInt64(payload.count).maybeNetworkData else
-        {
-            throw ConnectionError.conversionFailed
-        }
-
-        let compressed = compress(uncompressed)
-
-        guard let prefix = UInt8(compressed.count).maybeNetworkData else
-        {
-            throw ConnectionError.conversionFailed
-        }
-
-        logger.trace("prefix (\(prefix.count)) - \(prefix.hex)")
-        logger.trace("compressed (\(compressed.count)) - \(compressed.hex)")
-        logger.trace("payload (\(payload.count)) - \(payload.hex)")
-
-        let data = prefix + compressed + payload
-
-        logger.trace("writing (\(data.count)) - \(data.hex)")
-
-        guard self.network.write(data: data) else
-        {
-            throw ConnectionError.writeFailed
-        }
+        try request.saveDaydream(self.network)
     }
 
     public func call(_ request: Request) throws -> Response

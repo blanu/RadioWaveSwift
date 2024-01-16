@@ -14,8 +14,8 @@ import Transmission
 public struct Stdio<Request: Daydreamable, Response: Daydreamable>
 {
     let logger: Logger
-    let stdin: FileHandle
-    let stdout: FileHandle
+    let stdin: Transmission.Connection
+    let stdout: Transmission.Connection
 
     public init(logger: Logger)
     {
@@ -24,8 +24,8 @@ public struct Stdio<Request: Daydreamable, Response: Daydreamable>
 
     public init(stdin: FileHandle, stdout: FileHandle, logger: Logger)
     {
-        self.stdin = stdin
-        self.stdout = stdout
+        self.stdin = TransmissionFile(handle: stdin)
+        self.stdout = TransmissionFile(handle: stdout)
         self.logger = logger
     }
 
@@ -33,80 +33,14 @@ public struct Stdio<Request: Daydreamable, Response: Daydreamable>
     {
         self.logger.trace("Stdio.read()")
 
-        guard let prefix = try self.stdin.read(upToCount: 1) else
-        {
-            throw StdioError.readFailed
-        }
-
-        self.logger.trace("Stdio.read() - prefix: \(prefix)")
-
-        let varintCount = Int(prefix[0])
-
-        self.logger.trace("Stdio.read() - varintCount: \(varintCount)")
-
-        guard let compressedBuffer = try self.stdin.read(upToCount: varintCount) else
-        {
-            throw StdioError.readFailed
-        }
-
-        self.logger.trace("Stdio.read() - compressedBuffer: (\(compressedBuffer.count)) - \(compressedBuffer.hex)")
-
-        let uncompressedBuffer = try unpackVarintData(buffer: compressedBuffer)
-
-        self.logger.trace("Stdio.read() - uncompressedBuffer: (\(uncompressedBuffer.count)) - \(uncompressedBuffer.hex)")
-
-        guard let payloadCount = uncompressedBuffer.maybeNetworkUint64 else
-        {
-            throw ConnectionError.conversionFailed
-        }
-
-        self.logger.trace("Stdio.read() - payloadCount: (\(payloadCount))")
-
-        guard let payload = try self.stdin.read(upToCount: Int(payloadCount)) else
-        {
-            throw ConnectionError.readFailed
-        }
-
-        self.logger.trace("Stdio.read() - payload: (\(payload.count)) - \(payload.hex)")
-
-        let response = try Response(daydream: payload)
-
-        self.logger.trace("Stdio.read() - response: (\(response))")
+        let response = try Response(daydream: self.stdin)
 
         return response
     }
 
     public func write(_ request: Request) throws
     {
-        self.logger.trace("Stdio.write(\(request))")
-
-        let payload = request.daydream
-
-        self.logger.trace("Stdio.write(\(request)) - payload: (\(payload.count)) \(payload.hex)")
-
-        guard let uncompressed = UInt64(payload.count).maybeNetworkData else
-        {
-            throw ConnectionError.conversionFailed
-        }
-
-        self.logger.trace("Stdio.write(\(request)) - uncompressed: (\(uncompressed.count)) \(uncompressed.hex)")
-
-        let compressed = compress(uncompressed)
-
-        self.logger.trace("Stdio.write(\(request)) - compressed: (\(compressed.count)) \(compressed.hex)")
-
-        guard let prefix = UInt8(compressed.count).maybeNetworkData else
-        {
-            throw ConnectionError.conversionFailed
-        }
-
-        self.logger.trace("Stdio.write(\(request)) - prefix: (\(prefix.count)) \(prefix.hex)")
-
-        let data = prefix + compressed + payload
-
-        self.logger.trace("Stdio.write(\(request)) - data: (\(data.count)) \(data.hex)")
-
-        self.stdout.write(data)
+        try request.saveDaydream(self.stdout)
     }
 
     public func call(_ request: Request) throws -> Response
@@ -117,8 +51,8 @@ public struct Stdio<Request: Daydreamable, Response: Daydreamable>
 
     public func close()
     {
-        try? self.stdin.close()
-        try? self.stdout.close()
+        self.stdin.close()
+        self.stdout.close()
     }
 }
 
