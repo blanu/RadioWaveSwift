@@ -21,42 +21,27 @@ public class TransmissionFile: BaseConnection
         super.init(id: Int(handle.fileDescriptor))! // FIXME - fix this in TransmissionBase
     }
 
-    override public func unsafeRead(size: Int) -> Data?
+    override public func networkRead(size: Int) throws -> Data
     {
         var totalData = Data()
         while totalData.count < size
         {
             let leftToRead = size - totalData.count
 
-            do
+            guard let data = try self.handle.read(upToCount: leftToRead) else
             {
-                guard let data = try self.handle.read(upToCount: leftToRead) else
-                {
-                    return nil
-                }
+                throw TransmissionFileError.readFailed
+            }
 
-                totalData += data
-            }
-            catch
-            {
-                return nil
-            }
+            totalData += data
         }
 
         return totalData
     }
 
-    override public func write(data: Data) -> Bool
+    override public func networkWrite(data: Data) throws
     {
-        do
-        {
-            try self.handle.write(contentsOf: data)
-            return true
-        }
-        catch
-        {
-            return false
-        }
+        try self.handle.write(contentsOf: data)
     }
 
     override public func close()
@@ -69,4 +54,9 @@ public class TransmissionFile: BaseConnection
         {
         }
     }
+}
+
+public enum TransmissionFileError: Error
+{
+    case readFailed
 }
